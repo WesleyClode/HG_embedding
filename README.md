@@ -70,9 +70,6 @@ graph TD;
     Investor1-->Company1;
     Investor1-->Company2;
     
-    LP-->Fund;
-    Fund-->Investor2;
-    Investor2-->Company;
 
 ```
 
@@ -82,7 +79,7 @@ graph TD;
 
 # 4. Model evaluation for different applications
 
-**node classification/clustering (author classification/clustering)**
+**Node classification/clustering (author classification/clustering)**
 
 step-1: run [author classification/clustering] part in application.py to obtain evalution result 
 
