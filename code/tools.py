@@ -11,36 +11,43 @@ args = read_args()
 
 
 class HetAgg(nn.Module):
-	def __init__(self, args, feature_list, a_neigh_list_train, p_neigh_list_train, v_neigh_list_train,\
-		 a_train_id_list, p_train_id_list, v_train_id_list):
+	def __init__(self, args, feature_list, l_neigh_list_train, f_neigh_list_train, i_neigh_list_train,\
+		 c_neigh_list_train, l_train_id_list, f_train_id_list, i_train_id_list, c_train_id_list):
 		super(HetAgg, self).__init__()
 		embed_d = args.embed_d
 		in_f_d = args.in_f_d
 		self.args = args 
-		self.P_n = args.P_n
-		self.A_n = args.A_n
-		self.V_n = args.V_n
+		self.L_n = args.L_n
+		self.F_n = args.F_n
+		self.I_n = args.I_n
+		self.C_n = args.C_n
 		self.feature_list = feature_list
-		self.a_neigh_list_train = a_neigh_list_train
-		self.p_neigh_list_train = p_neigh_list_train
-		self.v_neigh_list_train = v_neigh_list_train
-		self.a_train_id_list = a_train_id_list
-		self.p_train_id_list = p_train_id_list
-		self.v_train_id_list = v_train_id_list
+		self.l_neigh_list_train = l_neigh_list_train
+		self.f_neigh_list_train = f_neigh_list_train
+		self.i_neigh_list_train = i_neigh_list_train
+		self.c_neigh_list_train = c_neigh_list_train
+		self.l_train_id_list = l_train_id_list
+		self.f_train_id_list = f_train_id_list
+		self.i_train_id_list = i_train_id_list
+		self.c_train_id_list = c_train_id_list
 
 		#self.fc_a_agg = nn.Linear(embed_d * 4, embed_d)
-			
-		self.a_content_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
-		self.p_content_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
-		self.v_content_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
 
-		self.a_neigh_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
-		self.p_neigh_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
-		self.v_neigh_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		# 这个content我们估计没有	
+		self.l_content_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		self.f_content_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		self.i_content_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		self.c_content_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		
+		self.l_neigh_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		self.f_neigh_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		self.i_neigh_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
+		self.c_neigh_rnn = nn.LSTM(embed_d, int(embed_d/2), 1, bidirectional = True)
 
-		self.a_neigh_att = nn.Parameter(torch.ones(embed_d * 2, 1), requires_grad = True)
-		self.p_neigh_att = nn.Parameter(torch.ones(embed_d * 2, 1), requires_grad = True)
-		self.v_neigh_att = nn.Parameter(torch.ones(embed_d * 2, 1), requires_grad = True)
+		self.l_neigh_att = nn.Parameter(torch.ones(embed_d * 2, 1), requires_grad = True)
+		self.f_neigh_att = nn.Parameter(torch.ones(embed_d * 2, 1), requires_grad = True)
+		self.i_neigh_att = nn.Parameter(torch.ones(embed_d * 2, 1), requires_grad = True)
+		self.c_neigh_att = nn.Parameter(torch.ones(embed_d * 2, 1), requires_grad = True)
 
 		self.softmax = nn.Softmax(dim = 1)
 		self.act = nn.LeakyReLU()
@@ -122,15 +129,19 @@ class HetAgg(nn.Module):
 			batch_s = int(len(id_batch[0]) / 3)
 
 		if node_type == 1:
-			neigh_agg = self.a_content_agg(id_batch).view(batch_s, 10, embed_d)
+			neigh_agg = self.l_content_agg(id_batch).view(batch_s, 10, embed_d)
 			neigh_agg = torch.transpose(neigh_agg, 0, 1)
 			all_state, last_state  = self.a_neigh_rnn(neigh_agg)
 		elif node_type == 2:
-			neigh_agg = self.p_content_agg(id_batch).view(batch_s, 10, embed_d)
+			neigh_agg = self.f_content_agg(id_batch).view(batch_s, 10, embed_d)
 			neigh_agg = torch.transpose(neigh_agg, 0, 1)
 			all_state, last_state  = self.p_neigh_rnn(neigh_agg)
+		elif node_type == 3:
+			neigh_agg = self.i_content_agg(id_batch).view(batch_s, 3, embed_d)
+			neigh_agg = torch.transpose(neigh_agg, 0, 1)
+			all_state, last_state  = self.v_neigh_rnn(neigh_agg)
 		else:
-			neigh_agg = self.v_content_agg(id_batch).view(batch_s, 3, embed_d)
+			neigh_agg = self.c_content_agg(id_batch).view(batch_s, 3, embed_d)
 			neigh_agg = torch.transpose(neigh_agg, 0, 1)
 			all_state, last_state  = self.v_neigh_rnn(neigh_agg)
 		neigh_agg = torch.mean(all_state, 0).view(batch_s, embed_d)

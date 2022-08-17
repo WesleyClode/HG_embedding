@@ -27,10 +27,13 @@ class model_class(object):
 			print ("neighbor set generation finish")
 			exit(0)
 
-		feature_list = [input_data.p_abstract_embed, input_data.p_title_embed,\
-		input_data.p_v_net_embed, input_data.p_a_net_embed, input_data.p_ref_net_embed,\
-		input_data.p_net_embed, input_data.a_net_embed, input_data.a_text_embed,\
-		input_data.v_net_embed, input_data.v_text_embed]
+		feature_list = input_data.used_feature_embed
+
+		# feature_list = [input_data.p_abstract_embed, input_data.p_title_embed,\
+		# input_data.p_v_net_embed, input_data.p_a_net_embed, input_data.p_ref_net_embed,\
+		# input_data.p_net_embed, input_data.a_net_embed, input_data.a_text_embed,\
+		# input_data.v_net_embed, input_data.v_text_embed]
+		# 这里可调
 
 		for i in range(len(feature_list)):
 			feature_list[i] = torch.from_numpy(np.array(feature_list[i])).float()
@@ -40,16 +43,18 @@ class model_class(object):
 				feature_list[i] = feature_list[i].cuda()
 		#self.feature_list = feature_list
 
-		a_neigh_list_train = input_data.a_neigh_list_train
-		p_neigh_list_train = input_data.p_neigh_list_train
-		v_neigh_list_train = input_data.v_neigh_list_train
+		l_neigh_list_train = input_data.l_neigh_list_train
+		f_neigh_list_train = input_data.f_neigh_list_train
+		i_neigh_list_train = input_data.i_neigh_list_train
+		c_neigh_list_train = input_data.c_neigh_list_train
 
-		a_train_id_list = input_data.a_train_id_list
-		p_train_id_list = input_data.p_train_id_list
-		v_train_id_list = input_data.v_train_id_list
+		l_train_id_list = input_data.l_train_id_list
+		f_train_id_list = input_data.f_train_id_list
+		i_train_id_list = input_data.i_train_id_list
+		c_train_id_list = input_data.c_train_id_list
 
-		self.model = tools.HetAgg(args, feature_list, a_neigh_list_train, p_neigh_list_train, v_neigh_list_train,\
-		 a_train_id_list, p_train_id_list, v_train_id_list)
+		self.model = tools.HetAgg(args, feature_list, l_neigh_list_train, f_neigh_list_train, i_neigh_list_train,c_neigh_list_train,\
+		 l_train_id_list, f_train_id_list, i_train_id_list, c_train_id_list)
 
 		if self.gpu:
 			self.model.cuda()
