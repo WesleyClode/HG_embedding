@@ -11,7 +11,10 @@ from itertools import *
 class input_data(object):
 	def __init__(self, args):
 		self.args = args
+		self.node_type_list = ['l','f','i','c']
+		self.node_number_list = [self.args.L_n, self.args.F_n, self.args.I_n, self.args.C_n]
 
+		# 构建节点的一阶邻居
 		l_f_list_train = [[] for k in range(self.args.L_n)]
 		f_l_list_train = [[] for k in range(self.args.F_n)]
 		f_i_list_train = [[] for k in range(self.args.F_n)] 
@@ -35,19 +38,20 @@ class input_data(object):
 				neigh_list = re.split(':', line)[1]
 				neigh_list_id = re.split(',', neigh_list)
 				for j in range(len(neigh_list_id)):
-					eval(f_name[:-4])[node_id].append(f_name[0]+str(neigh_list_id[j]))
+					rela_list_train = eval(f_name[:-4])
+					rela_list_train[node_id].append(f_name[0]+str(neigh_list_id[j]))
 			neigh_f.close()
 
 
-		#investor neighbor: fund + company
-		i_neigh_list_train = [[] for k in range(self.args.I_n)]
-		for i in range(self.args.I_n):
-			i_neigh_list_train[i] += i_f_list_train[i]
-			i_neigh_list_train[i] += i_c_list_train[i] 
+		# #investor neighbor: fund + company
+		# i_neigh_list_train = [[] for k in range(self.args.I_n)]
+		# for i in range(self.args.I_n):
+		# 	i_neigh_list_train[i] += i_f_list_train[i]
+		# 	i_neigh_list_train[i] += i_c_list_train[i] 
 
-		self.i_f_list_train =  i_f_list_train
-		self.i_c_list_train = i_c_list_train
-		self.i_neigh_list_train = i_neigh_list_train
+		# self.i_f_list_train =  i_f_list_train
+		# self.i_c_list_train = i_c_list_train
+		# self.i_neigh_list_train = i_neigh_list_train
 
 		if self.args.train_test_label != 2:
 			self.triple_sample_p = self.compute_sample_p()
@@ -75,33 +79,40 @@ class input_data(object):
 			self.l_prefer_embed = generate_content_embed(l_prefer_embed, "l_prefer_embed.txt")
 			l_combination_embed = np.zeros((self.args.L_n, self.args.in_f_d))
 			self.l_combination_embed = generate_content_embed(l_combination_embed, "l_combination_embed.txt")
-			# l_basic_embed = np.zeros((self.args.L_n, self.args.in_f_d))
-			# self.l_basic_embed = generate_content_embed(l_basic_embed, "l_basic_embed.txt")
-			# l_prefer_embed = np.zeros((self.args.L_n, self.args.in_f_d))
-			# self.l_prefer_embed = generate_content_embed(l_prefer_embed, "l_prefer_embed.txt")
-			# l_combination_embed = np.zeros((self.args.L_n, self.args.in_f_d))
-			# self.l_combination_embed = generate_content_embed(l_combination_embed, "l_combination_embed.txt")
-			# l_basic_embed = np.zeros((self.args.L_n, self.args.in_f_d))
-			# self.l_basic_embed = generate_content_embed(l_basic_embed, "l_basic_embed.txt")
-			# l_prefer_embed = np.zeros((self.args.L_n, self.args.in_f_d))
-			# self.l_prefer_embed = generate_content_embed(l_prefer_embed, "l_prefer_embed.txt")
-			# l_combination_embed = np.zeros((self.args.L_n, self.args.in_f_d))
-			# self.l_combination_embed = generate_content_embed(l_combination_embed, "l_combination_embed.txt")
+			f_basic_embed = np.zeros((self.args.L_n, self.args.in_f_d))
+			self.f_basic_embed = generate_content_embed(f_basic_embed, "f_basic_embed.txt")
+			f_prefer_embed = np.zeros((self.args.L_n, self.args.in_f_d))
+			self.f_prefer_embed = generate_content_embed(f_prefer_embed, "f_prefer_embed.txt")
+			f_financing_embed = np.zeros((self.args.L_n, self.args.in_f_d))
+			self.f_financing_embed = generate_content_embed(f_financing_embed, "f_financing_embed.txt")
+			i_basic_embed = np.zeros((self.args.L_n, self.args.in_f_d))
+			self.i_basic_embed = generate_content_embed(i_basic_embed, "i_basic_embed.txt")
+			i_prefer_embed = np.zeros((self.args.L_n, self.args.in_f_d))
+			self.i_prefer_embed = generate_content_embed(i_prefer_embed, "i_prefer_embed.txt")
+			i_combination_embed = np.zeros((self.args.L_n, self.args.in_f_d))
+			self.i_combination_embed = generate_content_embed(i_combination_embed, "i_combination_embed.txt")
 
 			#store pre-trained network/content embedding
 			l_net_embed = np.zeros((self.args.L_n, self.args.in_f_d))
 			f_net_embed = np.zeros((self.args.F_n, self.args.in_f_d))
 			i_net_embed = np.zeros((self.args.I_n, self.args.in_f_d)) 
 			c_net_embed = np.zeros((self.args.C_n, self.args.in_f_d)) 
+
 			idx_var_dict = {'l':l_net_embed,'f':f_net_embed,'i':i_net_embed,'c':c_net_embed}
+			
 			net_e_f = open(self.args.data_path + "node_net_embedding.txt", "r")
 			for line in islice(net_e_f, 1, None):
 				line = line.strip()
-				index = re.split(' ', line)[0]
-				if len(index) and (index[0] in idx_var_dict.keys()):
+				node = re.split(' ', line)
+				if len(node) and (node[0] in idx_var_dict.keys()):
 					embeds = np.asarray(re.split(' ', line)[1:], dtype='float32')
-					idx_var_dict[index[0]][int(index[1:])] = embeds
+					idx_var_dict[node[0]][int(node[1:])] = embeds
 			net_e_f.close()
+
+			self.l_net_embed = l_net_embed
+			self.f_net_embed = f_net_embed
+			self.i_net_embed = i_net_embed
+			self.c_net_embed = c_net_embed
 
 			def generate_rela_net_embed(rela_net_embed, latter_net_embed, rela_list_train, node_n):
 				for i in range(node_n):
@@ -138,10 +149,10 @@ class input_data(object):
 			self.c_c_net_embed = c_c_net_embed
 
 			#store neighbor set from random walk sequence 
-			l_neigh_list_train = [[[] for i in range(self.args.L_n)] for j in range(3)]
-			f_neigh_list_train = [[[] for i in range(self.args.F_n)] for j in range(3)]
-			i_neigh_list_train = [[[] for i in range(self.args.I_n)] for j in range(3)]
-			c_neigh_list_train = [[[] for i in range(self.args.C_n)] for j in range(3)]	
+			l_neigh_list_train = [[[] for i in range(self.args.L_n)] for j in range(4)]
+			f_neigh_list_train = [[[] for i in range(self.args.F_n)] for j in range(4)]
+			i_neigh_list_train = [[[] for i in range(self.args.I_n)] for j in range(4)]
+			c_neigh_list_train = [[[] for i in range(self.args.C_n)] for j in range(4)]	
 
 			het_neigh_train_f = open(self.args.data_path + "het_neigh_train.txt", "r")
 			
@@ -149,14 +160,12 @@ class input_data(object):
 			def generate_neigh_list_train(node_id, neigh_list, neigh_list_train):
 				if len(node_id) > 1:
 					for j in range(len(neigh_list)):
-						if neigh_list[j][0] == 'a':
-							neigh_list_train[0][int(node_id[1:])].append(int(neigh_list[j][1:]))
-						elif neigh_list[j][0] == 'p':
-							neigh_list_train[1][int(node_id[1:])].append(int(neigh_list[j][1:]))
-						elif neigh_list[j][0] == 'v':
-							neigh_list_train[2][int(node_id[1:])].append(int(neigh_list[j][1:]))
-						elif neigh_list[j][0] == 'v':
-							neigh_list_train[2][int(node_id[1:])].append(int(neigh_list[j][1:]))
+						neigh_type = neigh_list[j][0]
+						neigh_number = int(neigh_list[j][1:])
+						node_number = int(node_id[1:])
+						node_idx = self.node_type_list.index(neigh_type)
+						neigh_list_train[node_idx][node_number].append(neigh_number)
+
 				return neigh_list_train
 			
 
@@ -187,7 +196,7 @@ class input_data(object):
 			
 			def generate_top_neigh_set(node_n, neigh_list_train, neigh_list_train_top):
 				for i in range(node_n):
-					for j in range(3):
+					for j in range(len(top_k)):
 						neigh_list_train_temp = Counter(neigh_list_train[j][i])
 						top_list = neigh_list_train_temp.most_common(top_k[j])
 						neigh_size = top_k[j]
@@ -213,24 +222,19 @@ class input_data(object):
 			self.i_neigh_list_train = i_neigh_list_train_top
 			self.c_neigh_list_train = c_neigh_list_train_top
 
-			#store ids of author/paper/venue used in training 
-			train_id_list = [[] for i in range(3)]
-			for i in range(3):
-				if i == 0:
-					for l in range(self.args.A_n):
-						if len(a_neigh_list_train_top[i][l]):
-							train_id_list[i].append(l)
-					self.a_train_id_list = np.array(train_id_list[i])
-				elif i == 1:
-					for l in range(self.args.P_n):
-						if len(p_neigh_list_train_top[i][l]):
-							train_id_list[i].append(l)
-					self.p_train_id_list = np.array(train_id_list[i])
-				else:
-					for l in range(self.args.V_n):
-						if len(v_neigh_list_train_top[i][l]):
-							train_id_list[i].append(l)
-					self.v_train_id_list = np.array(train_id_list[i])
+			#store ids of lfic used in training 
+			train_id_list = [[] for i in range(4)]
+			def generate_train_id_list(idx, node_n, neigh_list_train_top, train_id_list):
+				for l in range(node_n):
+					if len(neigh_list_train_top[idx][l]):
+						train_id_list[i].append(l)
+				return np.array(train_id_list[idx])
+			
+			self.l_train_id_list = generate_train_id_list(0, self.args.L_n, l_neigh_list_train_top, train_id_list)
+			self.f_train_id_list = generate_train_id_list(1, self.args.F_n, f_neigh_list_train_top, train_id_list)
+			self.i_train_id_list = generate_train_id_list(2, self.args.I_n, i_neigh_list_train_top, train_id_list)
+			self.c_train_id_list = generate_train_id_list(3, self.args.C_n, c_neigh_list_train_top, train_id_list)
+
 			#print (len(self.v_train_id_list))		
 
 
@@ -327,9 +331,10 @@ class input_data(object):
 		print("computing sampling ratio for each kind of triple ...")
 		window = self.args.window
 		walk_L = self.args.walk_L
-		A_n = self.args.A_n
-		P_n = self.args.P_n
-		V_n = self.args.V_n
+		L_n = self.args.L_n
+		F_n = self.args.F_n
+		I_n = self.args.I_n
+		C_n = self.args.C_n
 
 		total_triple_n = [0.0] * 16 # 16 kinds of triples
 		het_walk_f = open(self.args.data_path + "het_random_walk.txt", "r")
@@ -365,7 +370,7 @@ class input_data(object):
 		triple_list = [[] for k in range(16)]
 		window = self.args.window
 		walk_L = self.args.walk_L
-		L_n = self.args.L_n
+		L_n = self.args.L_n # number of nodes
 		F_n = self.args.F_n
 		I_n = self.args.I_n
 		C_n = self.args.C_n
@@ -376,7 +381,7 @@ class input_data(object):
 		neighNode = ''
 		node_kind_list = ['l','f','i','c']
 		node_number_list = [L_n,F_n,I_n,C_n]
-		rela_list = [self.l_f_list_train, self.f_l_list_train, ]
+		
 		for line in het_walk_f:
 			line = line.strip()
 			path = []

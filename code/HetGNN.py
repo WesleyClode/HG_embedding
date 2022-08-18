@@ -26,14 +26,32 @@ class model_class(object):
 			input_data.het_walk_restart()
 			print ("neighbor set generation finish")
 			exit(0)
-
-		feature_list = input_data.used_feature_embed
-
-		# feature_list = [input_data.p_abstract_embed, input_data.p_title_embed,\
-		# input_data.p_v_net_embed, input_data.p_a_net_embed, input_data.p_ref_net_embed,\
-		# input_data.p_net_embed, input_data.a_net_embed, input_data.a_text_embed,\
-		# input_data.v_net_embed, input_data.v_text_embed]
-		# 这里可调
+		
+		feature_list = [input_data.l_basic_embed,\
+				input_data.l_prefer_embed,\
+				input_data.l_combination_embed,\
+				input_data.l_net_embed,\
+				input_data.f_basic_embed,\
+				input_data.f_prefer_embed,\
+				input_data.f_financing_embed,\
+				input_data.f_net_embed,\
+				input_data.f_l_net_embed,\
+				input_data.f_i_net_embed,\
+				input_data.i_basic_embed,\
+				input_data.i_prefer_embed,\
+				input_data.i_combination_embed,\
+				input_data.i_net_embed,\
+				input_data.i_f_net_embed,\
+				input_data.i_c_net_embed,\
+				input_data.c_basic_embed,\
+				input_data.c_business_embed,\
+				input_data.c_financing_embed,\
+				input_data.c_net_embed,\
+				input_data.c_i_net_embed,\
+				input_data.c_c_net_embed]
+		
+		self.args.feature_range = [0,4,10,16,22]
+		self.args.node_type_list = ['l','f','i','c']
 
 		for i in range(len(feature_list)):
 			feature_list[i] = torch.from_numpy(np.array(feature_list[i])).float()
@@ -41,7 +59,7 @@ class model_class(object):
 		if self.gpu:
 			for i in range(len(feature_list)):
 				feature_list[i] = feature_list[i].cuda()
-		#self.feature_list = feature_list
+		self.feature_list = feature_list
 
 		l_neigh_list_train = input_data.l_neigh_list_train
 		f_neigh_list_train = input_data.f_neigh_list_train
@@ -107,7 +125,7 @@ class model_class(object):
 			if iter_i % self.args.save_model_freq == 0:
 				torch.save(self.model.state_dict(), self.args.model_path + "HetGNN_" + str(iter_i) + ".pt")
 				# save embeddings for evaluation
-				triple_index = 9 
+				triple_index = 16 
 				a_out, p_out, v_out = self.model([], triple_index)
 			print ('iteration ' + str(iter_i) + ' finish.')
 
