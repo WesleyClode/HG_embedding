@@ -2,19 +2,21 @@ import argparse
 
 def read_args():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--data_path', type = str, default = '../data/academic_test/',
+	parser.add_argument('--data_path', type = str, default = './KDD2019_HetGNN-master/data/2007_1_1/',
 				   help='path to data')
 	parser.add_argument('--model_path', type = str, default = '../model_save/',
 				   help='path to save model')
-	parser.add_argument('--A_n', type = int, default = 28646,
-				   help = 'number of author node')
-	parser.add_argument('--P_n', type = int, default = 21044,
-				   help = 'number of paper node')
-	parser.add_argument('--V_n', type = int, default = 18,
-				   help = 'number of venue node')
-	parser.add_argument('--in_f_d', type = int, default = 128,
+	parser.add_argument('--L_n', type = int, default = 22309,
+				   help = 'number of LP node')
+	parser.add_argument('--F_n', type = int, default = 6498,
+				   help = 'number of fund node')
+	parser.add_argument('--I_n', type = int, default = 90024,
+				   help = 'number of investor node')
+	parser.add_argument('--C_n', type = int, default = 45906,
+				   help = 'number of company node')
+	parser.add_argument('--in_f_d', type = int, default = 384,
 				   help = 'input feature dimension')
-	parser.add_argument('--embed_d', type = int, default = 128,
+	parser.add_argument('--embed_d', type = int, default = 384,
 				   help = 'embedding dimension')
 	parser.add_argument('--lr', type = int, default = 0.001,
 				   help = 'learning rate')

@@ -28,29 +28,21 @@ class model_class(object):
 			exit(0)
 		
 		feature_list = [input_data.l_basic_embed,\
-				input_data.l_prefer_embed,\
-				input_data.l_combination_embed,\
 				input_data.l_net_embed,\
 				input_data.f_basic_embed,\
-				input_data.f_prefer_embed,\
-				input_data.f_financing_embed,\
 				input_data.f_net_embed,\
 				input_data.f_l_net_embed,\
 				input_data.f_i_net_embed,\
 				input_data.i_basic_embed,\
-				input_data.i_prefer_embed,\
-				input_data.i_combination_embed,\
 				input_data.i_net_embed,\
 				input_data.i_f_net_embed,\
 				input_data.i_c_net_embed,\
 				input_data.c_basic_embed,\
-				input_data.c_business_embed,\
-				input_data.c_financing_embed,\
 				input_data.c_net_embed,\
 				input_data.c_i_net_embed,\
 				input_data.c_c_net_embed]
 		
-		self.args.feature_range = [0,4,10,16,22]
+		self.args.feature_range = [0,2,6,10,14]
 		self.args.node_type_list = ['l','f','i','c']
 
 		for i in range(len(feature_list)):
@@ -107,6 +99,7 @@ class model_class(object):
 				for triple_index in range(len(triple_list)):
 					triple_list_temp = triple_list[triple_index]
 					triple_list_batch = triple_list_temp[k * mini_batch_s : (k + 1) * mini_batch_s]
+					# print(triple_list_batch)
 					c_out_temp, p_out_temp, n_out_temp = self.model(triple_list_batch, triple_index)
 
 					c_out[triple_index] = c_out_temp

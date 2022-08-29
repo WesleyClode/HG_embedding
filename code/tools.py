@@ -62,6 +62,8 @@ class HetAgg(nn.Module):
 
 
 	def content_agg(self, node_type, id_batch, func_content_rnn): #heterogeneous content aggregation
+		# print(id_batch)
+		# print('----------------------------------')
 		node_idx = self.args.node_type_list.index(node_type)
 		feature_idx_range = range(self.args.feature_range[node_idx],self.args.feature_range[node_idx+1])
 		embed_d = self.embed_d
@@ -69,6 +71,9 @@ class HetAgg(nn.Module):
 		idx_list = [n for n in feature_idx_range]
 		for idx in idx_list:
 			embed_batch.append(self.feature_list[idx][id_batch])
+			# except:
+			# 	print(idx,'\n',id_batch,'\n',self.feature_list[idx],'\n') 
+			# 	break 
 
 		concate_embed = torch.cat(embed_batch, 1).view(len(id_batch[0]), len(idx_list), embed_d)
 		concate_embed = torch.transpose(concate_embed, 0, 1)
@@ -102,30 +107,31 @@ class HetAgg(nn.Module):
 
 
 	def node_het_agg(self, id_batch, node_type): #heterogeneous neighbor aggregation
+		# print(id_batch)
 		l_neigh_batch = [[0] * 10] * len(id_batch)
 		f_neigh_batch = [[0] * 10] * len(id_batch)
 		i_neigh_batch = [[0] * 10] * len(id_batch)
 		c_neigh_batch = [[0] * 10] * len(id_batch)
 
-		def gene_neigh_batch(node_type):
-			node_neigh_list_train_dict = {'l':self.l_neigh_list_train,'f':self.f_neigh_list_train,
-				'i':self.i_neigh_list_train,'c':self.c_neigh_list_train}
-			for i in range(len(id_batch)):
-				l_neigh_batch[i] = node_neigh_list_train_dict[node_type][0][id_batch[i]]
-				f_neigh_batch[i] = node_neigh_list_train_dict[node_type][1][id_batch[i]]
-				i_neigh_batch[i] = node_neigh_list_train_dict[node_type][2][id_batch[i]]
-				c_neigh_batch[i] = node_neigh_list_train_dict[node_type][3][id_batch[i]]
-			return l_neigh_batch, f_neigh_batch, i_neigh_batch, c_neigh_batch
-		l_neigh_batch, f_neigh_batch, i_neigh_batch, c_neigh_batch = gene_neigh_batch(node_type)
+		# def gene_neigh_batch(node_type):
+		node_neigh_list_train_dict = {'l':self.l_neigh_list_train,'f':self.f_neigh_list_train,
+			'i':self.i_neigh_list_train,'c':self.c_neigh_list_train}
+		for i in range(len(id_batch)):
+			l_neigh_batch[i] = node_neigh_list_train_dict[node_type][0][id_batch[i]]
+			f_neigh_batch[i] = node_neigh_list_train_dict[node_type][1][id_batch[i]]
+			i_neigh_batch[i] = node_neigh_list_train_dict[node_type][2][id_batch[i]]
+			c_neigh_batch[i] = node_neigh_list_train_dict[node_type][3][id_batch[i]]
+			# return l_neigh_batch, f_neigh_batch, i_neigh_batch, c_neigh_batch
+		# l_neigh_batch, f_neigh_batch, i_neigh_batch, c_neigh_batch = gene_neigh_batch(node_type)
 
 		l_neigh_batch = np.reshape(l_neigh_batch, (1, -1))
-		l_agg_batch = self.node_neigh_agg(l_neigh_batch, 1)
+		l_agg_batch = self.node_neigh_agg(l_neigh_batch, 'l')
 		f_neigh_batch = np.reshape(f_neigh_batch, (1, -1))
-		f_agg_batch = self.node_neigh_agg(f_neigh_batch, 2)
+		f_agg_batch = self.node_neigh_agg(f_neigh_batch, 'f')
 		i_neigh_batch = np.reshape(i_neigh_batch, (1, -1))
-		i_agg_batch = self.node_neigh_agg(i_neigh_batch, 3)
+		i_agg_batch = self.node_neigh_agg(i_neigh_batch, 'i')
 		c_neigh_batch = np.reshape(c_neigh_batch, (1, -1))
-		c_agg_batch = self.node_neigh_agg(c_neigh_batch, 3)
+		c_agg_batch = self.node_neigh_agg(c_neigh_batch, 'c')
 
 		#attention module
 		id_batch = np.reshape(id_batch, (1, -1))
