@@ -9,6 +9,23 @@ import re
 import math
 args = read_args()
 
+def list_flatten(list_array):
+	list_array = np.squeeze(list_array)
+	list = []
+	nozero = []
+	for i in range(len(list_array)):
+		if list_array[i] != []:
+			nozero.append(i)
+	
+	print(nozero)
+
+	for i in range(len(list_array)):
+		print("i_list: ", list_array[i])
+		if list_array[i] == []:
+			list.append(list_array[choice(nozero)])
+		else:
+			list.append(list_array[i])
+	return list
 
 class HetAgg(nn.Module):
 	def __init__(self, args, feature_list, l_neigh_list_train, f_neigh_list_train, i_neigh_list_train,\
@@ -128,8 +145,10 @@ class HetAgg(nn.Module):
 		l_agg_batch = self.node_neigh_agg(l_neigh_batch, 'l')
 		f_neigh_batch = np.reshape(f_neigh_batch, (1, -1))
 		f_agg_batch = self.node_neigh_agg(f_neigh_batch, 'f')
+		i_neigh_batch = list_flatten(i_neigh_batch)
 		i_neigh_batch = np.reshape(i_neigh_batch, (1, -1))
 		i_agg_batch = self.node_neigh_agg(i_neigh_batch, 'i')
+		c_neigh_batch = list_flatten(c_neigh_batch)
 		c_neigh_batch = np.reshape(c_neigh_batch, (1, -1))
 		c_agg_batch = self.node_neigh_agg(c_neigh_batch, 'c')
 
