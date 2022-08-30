@@ -171,7 +171,7 @@ class HetAgg(nn.Module):
 
 		#compute weights
 		concate_embed = torch.cat((a_agg_batch_2, l_agg_batch_2, f_agg_batch_2,\
-		 i_agg_batch_2, c_agg_batch_2), 1).view(len(a_agg_batch), 4, self.embed_d * 2)
+		 i_agg_batch_2, c_agg_batch_2), 1).view(len(a_agg_batch), 5, self.embed_d * 2)
 		if node_type == 'l':
 			atten_w = self.act(torch.bmm(concate_embed, self.l_neigh_att.unsqueeze(0).expand(len(a_agg_batch),\
 			 *self.l_neigh_att.size())))
@@ -184,11 +184,11 @@ class HetAgg(nn.Module):
 		elif node_type == 'c':
 			atten_w = self.act(torch.bmm(concate_embed, self.c_neigh_att.unsqueeze(0).expand(len(a_agg_batch),\
 			 *self.c_neigh_att.size())))
-		atten_w = self.softmax(atten_w).view(len(a_agg_batch), 1, 4)
+		atten_w = self.softmax(atten_w).view(len(a_agg_batch), 1, 5)
 
 		#weighted combination
 		concate_embed = torch.cat((a_agg_batch, l_agg_batch, f_agg_batch,\
-		 i_agg_batch, c_agg_batch), 1).view(len(a_agg_batch), 4, self.embed_d)
+		 i_agg_batch, c_agg_batch), 1).view(len(a_agg_batch), 5, self.embed_d)
 		weight_agg_batch = torch.bmm(atten_w, concate_embed).view(len(a_agg_batch), self.embed_d)
 
 		return weight_agg_batch
