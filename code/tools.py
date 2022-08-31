@@ -7,6 +7,7 @@ import numpy as np
 import string
 import re
 import math
+import random
 args = read_args()
 
 def list_flatten(list_array):
@@ -17,12 +18,12 @@ def list_flatten(list_array):
 		if list_array[i] != []:
 			nozero.append(i)
 	
-	print(nozero)
+	# print(nozero)
 
 	for i in range(len(list_array)):
-		print("i_list: ", list_array[i])
+		# print("i_list: ", list_array[i])
 		if list_array[i] == []:
-			list.append(list_array[choice(nozero)])
+			list.append(list_array[random.choice(nozero)])
 		else:
 			list.append(list_array[i])
 	return list
@@ -134,6 +135,7 @@ class HetAgg(nn.Module):
 		node_neigh_list_train_dict = {'l':self.l_neigh_list_train,'f':self.f_neigh_list_train,
 			'i':self.i_neigh_list_train,'c':self.c_neigh_list_train}
 		for i in range(len(id_batch)):
+			# print(node_type, i, len(node_neigh_list_train_dict[node_type][0]),id_batch[i])   
 			l_neigh_batch[i] = node_neigh_list_train_dict[node_type][0][id_batch[i]]
 			f_neigh_batch[i] = node_neigh_list_train_dict[node_type][1][id_batch[i]]
 			i_neigh_batch[i] = node_neigh_list_train_dict[node_type][2][id_batch[i]]
@@ -141,8 +143,10 @@ class HetAgg(nn.Module):
 			# return l_neigh_batch, f_neigh_batch, i_neigh_batch, c_neigh_batch
 		# l_neigh_batch, f_neigh_batch, i_neigh_batch, c_neigh_batch = gene_neigh_batch(node_type)
 
+		l_neigh_batch = list_flatten(l_neigh_batch)
 		l_neigh_batch = np.reshape(l_neigh_batch, (1, -1))
 		l_agg_batch = self.node_neigh_agg(l_neigh_batch, 'l')
+		f_neigh_batch = list_flatten(f_neigh_batch)
 		f_neigh_batch = np.reshape(f_neigh_batch, (1, -1))
 		f_agg_batch = self.node_neigh_agg(f_neigh_batch, 'f')
 		i_neigh_batch = list_flatten(i_neigh_batch)
@@ -155,13 +159,13 @@ class HetAgg(nn.Module):
 		#attention module
 		id_batch = np.reshape(id_batch, (1, -1))
 		if node_type == 'l':
-			a_agg_batch = self.l_content_agg(id_batch)
+			a_agg_batch = self.content_agg('l', id_batch, self.l_content_rnn)
 		elif node_type == 'f':
-			a_agg_batch = self.f_content_agg(id_batch)
+			a_agg_batch = self.content_agg('f', id_batch, self.f_content_rnn)
 		elif node_type == 'i':
-			a_agg_batch = self.i_content_agg(id_batch)
+			a_agg_batch = self.content_agg('i', id_batch, self.i_content_rnn)
 		elif node_type == 'c':
-			a_agg_batch = self.c_content_agg(id_batch)
+			a_agg_batch = self.content_agg('c', id_batch, self.c_content_rnn)
 
 		a_agg_batch_2 = torch.cat((a_agg_batch, a_agg_batch), 1).view(len(a_agg_batch), self.embed_d * 2)
 		l_agg_batch_2 = torch.cat((a_agg_batch, l_agg_batch), 1).view(len(a_agg_batch), self.embed_d * 2)
@@ -200,21 +204,24 @@ class HetAgg(nn.Module):
 		# nine cases for academic data (author, paper, venue)
 		node_type_list = ['l','f','i','c']
 		if triple_index < 16:
+			# print('v_agg',node_type_list[triple_index//4])
 			v_agg = self.node_het_agg(v_id_batch, node_type_list[triple_index//4])
-			p_agg = self.node_het_agg(pos_id_batch, node_type_list[triple_index%4+1])
-			n_agg = self.node_het_agg(neg_id_batch, node_type_list[triple_index%4+1])
+			# print('p_agg',node_type_list[triple_index%4])
+			p_agg = self.node_het_agg(pos_id_batch, node_type_list[triple_index%4])
+			# print('n_agg',node_type_list[triple_index%4])
+			n_agg = self.node_het_agg(neg_id_batch, node_type_list[triple_index%4])
 
 		elif triple_index == 16: #save learned node embedding
 			embed_file = open(self.args.data_path + "node_embedding.txt", "w")
 			save_batch_s = self.args.mini_batch_s
 
-			i = 0
+			i = -1
 			for id_list in [self.l_train_id_list, self.f_train_id_list, self.i_train_id_list, self.c_train_id_list]:
 				i += 1
 				batch_number = int(len(id_list) / save_batch_s)
 				for j in range(batch_number):
 					id_batch = id_list[j * save_batch_s : (j + 1) * save_batch_s]
-					out_temp = self.node_het_agg(id_batch, i)
+					out_temp = self.node_het_agg(id_batch, node_type_list[i])
 					out_temp = out_temp.data.cpu().numpy()
 
 					for k in range(len(id_batch)):
@@ -225,7 +232,7 @@ class HetAgg(nn.Module):
 						embed_file.write(str(out_temp[k][-1]) + "\n")
 
 				id_batch = id_list[batch_number * save_batch_s : -1]
-				out_temp = self.node_het_agg(id_batch, i) 
+				out_temp = self.node_het_agg(id_batch, node_type_list[i]) 
 				out_temp = out_temp.data.cpu().numpy()
 				
 				for k in range(len(id_batch)):
@@ -272,4 +279,3 @@ def cross_entropy_loss(v_embed_batch, pos_embed_batch, neg_embed_batch, embed_d)
 	#loss_sum = loss_sum.sum() / batch_size
 
 	return loss_sum.mean()
-

@@ -2,7 +2,7 @@ import argparse
 
 def read_args():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--data_path', type = str, default = './KDD2019_HetGNN-master/data/2007_1_1/',
+	parser.add_argument('--data_path', type = str, default = '../data/2007_1_1/',
 				   help='path to data')
 	parser.add_argument('--model_path', type = str, default = '../model_save/',
 				   help='path to save model')
@@ -20,15 +20,15 @@ def read_args():
 				   help = 'embedding dimension')
 	parser.add_argument('--lr', type = int, default = 0.001,
 				   help = 'learning rate')
-	parser.add_argument('--batch_s', type = int, default = 20000,
+	parser.add_argument('--batch_s', type = int, default = 10000,
 				   help = 'batch size')
 	parser.add_argument('--mini_batch_s', type = int, default = 200,
 				   help = 'mini batch size')
 	parser.add_argument('--train_iter_n', type = int, default = 50,
 				   help = 'max number of training iteration')
-	parser.add_argument('--walk_n', type = int, default = 10,
+	parser.add_argument('--walk_n', type = int, default = 5,
 				   help='number of walk per root node')
-	parser.add_argument('--walk_L', type = int, default = 30,
+	parser.add_argument('--walk_L', type = int, default = 15,
 				   help='length of each walk')
 	parser.add_argument('--window', type = int, default = 5,
 				   help='window size for relation extration')

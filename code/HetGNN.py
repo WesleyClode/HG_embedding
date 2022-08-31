@@ -90,13 +90,14 @@ class model_class(object):
 				if len(triple_list[ii]) < min_len:
 					min_len = len(triple_list[ii])
 			batch_n = int(min_len / mini_batch_s)
-			print (batch_n)
+			# print (batch_n)
 			for k in range(batch_n):
 				c_out = torch.zeros([len(triple_list), mini_batch_s, embed_d])
 				p_out = torch.zeros([len(triple_list), mini_batch_s, embed_d])
 				n_out = torch.zeros([len(triple_list), mini_batch_s, embed_d])
 
 				for triple_index in range(len(triple_list)):
+					# print('triple_index',triple_index)
 					triple_list_temp = triple_list[triple_index]
 					triple_list_batch = triple_list_temp[k * mini_batch_s : (k + 1) * mini_batch_s]
 					# print(triple_list_batch)
@@ -107,13 +108,16 @@ class model_class(object):
 					n_out[triple_index] = n_out_temp
 
 				loss = tools.cross_entropy_loss(c_out, p_out, n_out, embed_d)
+				print('loss finish')
 
 				self.optim.zero_grad()
 				loss.backward()
+				print('backwrd finish')
 				self.optim.step() 
 
 				if k % 100 == 0:
 					print ("loss: " + str(loss))
+					# break
 
 			if iter_i % self.args.save_model_freq == 0:
 				torch.save(self.model.state_dict(), self.args.model_path + "HetGNN_" + str(iter_i) + ".pt")
