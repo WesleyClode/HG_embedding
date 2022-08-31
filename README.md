@@ -46,6 +46,11 @@ test data link: https://drive.google.com/file/d/1N6GWsniacaT-L0GPXpi1D3gM2LVOih-
 
 - het_random_walk.txt: generated random walks as node sequences (corpus) for model training
 
+**run the program**
+
+python HetGNN.py [parameters]
+
+(enable GPU: python HetGNN.py --cuda 1)
 
 
 ## 总结：
